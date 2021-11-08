@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import { getEvents } from "./EventManager.js"
 
 export const EventList = (props) => {
-    const [ events, setEvents ] = useState([])
+    const [events, setEvents] = useState([])
 
     useEffect(() => {
         getEvents().then(data => setEvents(data))
@@ -20,6 +20,11 @@ export const EventList = (props) => {
                     </section>
                 })
             }
+            <button className="btn btn-2 btn-sep icon-create"
+                onClick={() => {
+                    history.push({ pathname: "/events/new" })
+                }}
+            >Create New Event</button>
         </article>
     )
 }
