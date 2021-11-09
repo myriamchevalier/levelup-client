@@ -1,15 +1,14 @@
 import React, { useEffect, useState} from "react"
 import { useHistory } from "react-router-dom"
-import { getEvents, joinEvent } from "./EventManager.js"
+import { getEvents, joinEvent,leaveEvent } from "./EventManager.js"
 
 
 export const EventList = () => {
     const history = useHistory()
-    const [ events, assignEvents ] = useState([])
+    const [ events, updateEvents ] = useState([])
 
     const eventFetcher = () => {
-        getEvents()
-            .then(data => assignEvents(data))
+        getEvents().then(data => updateEvents(data))
     }
 
     useEffect(() => {
@@ -34,17 +33,18 @@ export const EventList = () => {
                         <div>
                             {event.date} @ {event.time}
                         </div>
-                        <button className="btn btn-2"
-                                onClick={
-                                    () => {
-                                        joinEvent(event.id)
-                                            .then(() => eventFetcher())
-                                    }
-                                }
-                        >Join</button>
+                        {
+                            event.joined
+                                ? <button className="btn btn-3"
+                                    onClick={() => leaveEvent(event.id).then(() => eventFetcher())}
+                                    >Leave</button>
+                                : <button className="btn btn-2"
+                                    onClick={() => joinEvent(event.id).then(() => eventFetcher())}
+                                    >Join</button>
+                        }
                     </section>
                 })
             }
-        </article >
+        </article>
     )
 }
