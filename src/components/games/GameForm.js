@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react"
 import { useHistory } from 'react-router-dom'
-import { createGame, getGameTypes } from './GameManager.js'
+import { createGame, getGameTypes, getSingleGame } from './GameManager.js'
 
 
 export const GameForm = () => {
     const history = useHistory()
     const [gameTypes, setGameTypes] = useState([])
+    const [game, setGame] = useState({})
 
     /*
         Since the input fields are bound to the values of
@@ -24,6 +25,7 @@ export const GameForm = () => {
         getGameTypes()
         .then((data) => setGameTypes(data))
     }, [])
+    
 
     const handleControlledInputChange = (event) => {
         /*
