@@ -1,51 +1,74 @@
 import React, { useState, useEffect } from "react"
-import { useHistory } from 'react-router-dom'
-import { createGame, getGameTypes, getSingleGame } from './GameManager.js'
+import { useHistory, useParams } from 'react-router-dom'
+import { createGame, getGameTypes, getSingleGame, updateGame } from './GameManager.js'
 
 
 export const GameForm = () => {
     const history = useHistory()
     const [gameTypes, setGameTypes] = useState([])
     const [game, setGame] = useState({})
+    const { gameId } = useParams()
+    const editMode = gameId ? true : false
 
-    /*
-        Since the input fields are bound to the values of
-        the properties of this state variable, you need to
-        provide some default values.
-    */
-    const [currentGame, setCurrentGame] = useState({
-        skillLevel: 1,
-        numberOfPlayers: 0,
-        title: "",
-        maker: "",
-        gameTypeId: 0
-    })
+    // Tracks transient state
 
-    useEffect(() => { 
+    useEffect(() => {
         getGameTypes()
         .then((data) => setGameTypes(data))
     }, [])
-    
+
+    useEffect(() => {
+        if (editMode) {
+            getSingleGame(gameId).then((gameData) => {
+                setGame(
+                    // Unpack the response, then match the back-end naming to front-end
+                    {...gameData,      
+                    skillLevel: gameData.skill_level,
+                    numberOfPlayers: gameData.number_of_players,
+                    gameTypeId: gameData.game_type.id}
+                )
+            })
+        }
+    }, [])
+
 
     const handleControlledInputChange = (event) => {
         /*
             When changing a state object or array, always create a new one
             and change state instead of modifying current one
         */
-        const newGame = Object.assign({}, currentGame)          // Create copy
+        const newGame = Object.assign({}, game)          // Create copy
         newGame[event.target.name] = event.target.value         // Modify copy
-        setCurrentGame(newGame)                                 // Set copy as new state
+        setGame(newGame)                                 // Set copy as new state
     }
 
+    const constructNewGame = () => {
+        const game = {
+            maker: currentGame.maker,
+            title: currentGame.title,
+            numberOfPlayers: parseInt(currentGame.numberOfPlayers),
+            skillLevel: parseInt(currentGame.skillLevel),
+            gameTypeId: parseInt(currentGame.gameTypeId)
+        }
+        if (editMode) {
+            updateGame(game)
+                .then(() => history.push('/'))
+        } else {
+            createGame(game)
+                .then(() => history.push("/"))
+        }
+
+        // Send POST request to your API
+    }
 
     return (
         <form className="gameForm">
-            <h2 className="gameForm__title">Register New Game</h2>
+            <h2 className="gameForm__title">{editMode ? "Update Game" : "Register New Game"}</h2>
             <fieldset>
                 <div className="form-group">
                     <label htmlFor="title">Title: </label>
                     <input type="text" name="title" required autoFocus className="form-control"
-                        value={currentGame.title}
+                        value={game.title}
                         onChange={handleControlledInputChange}
                     />
                 </div>
@@ -54,7 +77,7 @@ export const GameForm = () => {
                 <div className="form-group">
                     <label htmlFor="title">Maker: </label>
                     <input type="text" name="maker" required autoFocus className="form-control"
-                        value={currentGame.maker}
+                        value={game.maker}
                         onChange={handleControlledInputChange}
                     />
                 </div>
@@ -63,7 +86,7 @@ export const GameForm = () => {
                 <div className="form-group">
                     <label htmlFor="gameTypeId">Game Type: </label>
                     <select name="gameTypeId" className="form-control"
-                        value={currentGame.gameTypeId}
+                        value={game.gameTypeId}
                         onChange={handleControlledInputChange}>
 
                         <option value="0">Select a game type</option>
@@ -81,7 +104,7 @@ export const GameForm = () => {
                 <div className="form-group">
                     <label htmlFor="numberOfPlayers">Number Of Players: </label>
                     <input type="text" name="numberOfPlayers" required autoFocus className="form-control"
-                        value={currentGame.numberOfPlayers}
+                        value={game.numberOfPlayers}
                         onChange={handleControlledInputChange}
                     />
                 </div>
@@ -90,7 +113,7 @@ export const GameForm = () => {
                 <div className="form-group">
                     <label htmlFor="skillLevel">Skill Level: </label>
                     <input type="text" name="skillLevel" required autoFocus className="form-control"
-                        value={currentGame.skillLevel}
+                        value={game.skillLevel}
                         onChange={handleControlledInputChange}
                     />
                 </div>
@@ -100,20 +123,9 @@ export const GameForm = () => {
                 onClick={evt => {
                     // Prevent form from being submitted
                     evt.preventDefault()
-
-                    const game = {
-                        maker: currentGame.maker,
-                        title: currentGame.title,
-                        numberOfPlayers: parseInt(currentGame.numberOfPlayers),
-                        skillLevel: parseInt(currentGame.skillLevel),
-                        gameTypeId: parseInt(currentGame.gameTypeId)
-                    }
-
-                    // Send POST request to your API
-                    createGame(game)
-                        .then(() => history.push("/"))
+                    constructNewGame
                 }}
-                className="btn btn-primary">Create</button>
+                className="btn btn-primary">Save game</button>
         </form>
     )
 }
