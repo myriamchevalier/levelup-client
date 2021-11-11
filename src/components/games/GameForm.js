@@ -6,7 +6,7 @@ import { createGame, getGameTypes, getSingleGame, updateGame } from './GameManag
 export const GameForm = () => {
     const history = useHistory()
     const [gameTypes, setGameTypes] = useState([])
-    const [game, setGame] = useState({})
+    const [game, setState] = useState({})
     const { gameId } = useParams()
     const editMode = gameId ? true : false
 
@@ -20,7 +20,7 @@ export const GameForm = () => {
     useEffect(() => {
         if (editMode) {
             getSingleGame(gameId).then((gameData) => {
-                setGame(
+                setState(
                     // Unpack the response, then match the back-end naming to front-end
                     {...gameData,      
                     skillLevel: gameData.skill_level,
@@ -39,17 +39,10 @@ export const GameForm = () => {
         */
         const newGame = Object.assign({}, game)          // Create copy
         newGame[event.target.name] = event.target.value         // Modify copy
-        setGame(newGame)                                 // Set copy as new state
+        setState(newGame)                                 // Set copy as new state
     }
 
     const constructNewGame = () => {
-        const game = {
-            maker: currentGame.maker,
-            title: currentGame.title,
-            numberOfPlayers: parseInt(currentGame.numberOfPlayers),
-            skillLevel: parseInt(currentGame.skillLevel),
-            gameTypeId: parseInt(currentGame.gameTypeId)
-        }
         if (editMode) {
             updateGame(game)
                 .then(() => history.push('/'))
@@ -123,7 +116,7 @@ export const GameForm = () => {
                 onClick={evt => {
                     // Prevent form from being submitted
                     evt.preventDefault()
-                    constructNewGame
+                    constructNewGame()
                 }}
                 className="btn btn-primary">Save game</button>
         </form>
