@@ -1,32 +1,46 @@
 import React, { useState, useEffect } from "react"
-import { useHistory } from "react-router-dom"
+import { useHistory, useParams } from "react-router-dom"
 import { getGames } from "../games/GameManager"
-import { createEvent } from "./EventManager"
+import { createEvent, updateEvent, getSingleEvent } from "./EventManager"
 
 export const EventForm = () => {
     const history = useHistory()
     const [games, setGames] = useState([])
-    const [currentEvent, setCurrentEvent] = useState({})
-
+    const [event, setState] = useState({})
+    const { eventId } = useParams()
+    
     useEffect(() => {
         getGames()
         .then((data) => setGames(data))
     }, [])
 
+    useEffect(() => {
+        if (eventId) {
+            getSingleEvent(eventId).then((eventData) => {
+                setState(
+                    // Unpack response
+                    {...eventData,
+                    gameId: eventData.game.id}
+                )
+            })
+        }
+    },[eventId])
+
     const changeEventState = (domEvent) => {
-        const newEvent = Object.assign({}, currentEvent)          // Create copy
+        const newEvent = Object.assign({}, event)          // Create copy
         newEvent[domEvent.target.name] = domEvent.target.value    // Modify copy
-        setCurrentEvent(newEvent)                                 // Set copy as new state
+        setState(newEvent)                                 // Set copy as new state
     }
+
 
     return (
         <form className="eventForm">
-            <h2 className="eventForm__title">Schedule New Event</h2>
+            <h2 className="eventForm__title">{eventId? "Update Event" : "Schedule New Event"}</h2>
             <fieldset>
                 <div className="form-group">
                     <label htmlFor="gameId">Game: </label>
                     <select name="gameId" className="form-control"
-                        value={ currentEvent.gameId }
+                        value={ event.gameId }
                         onChange={ changeEventState }>
                         <option value="0">Select a game...</option>
                         {
@@ -41,7 +55,7 @@ export const EventForm = () => {
                 <div className="form-group">
                     <label htmlFor="description">Description </label>
                     <input type="text" name="description" required autoFocus className="form-control"
-                        value={currentEvent.description}
+                        value={event.description}
                         onChange={changeEventState}
                     />
                 </div>
@@ -50,7 +64,7 @@ export const EventForm = () => {
                 <div className="form-group">
                     <label htmlFor="description">Date </label>
                     <input type="date" name="date" required autoFocus className="form-control"
-                        value={currentEvent.date}
+                        value={event.date}
                         onChange={changeEventState}
                     />
                 </div>
@@ -59,7 +73,7 @@ export const EventForm = () => {
                 <div className="form-group">
                     <label htmlFor="time">Time </label>
                     <input type="time" name="time" required autoFocus className="form-control"
-                        value={currentEvent.time}
+                        value={event.time}
                         onChange={changeEventState}
                     />
                 </div>
@@ -68,16 +82,14 @@ export const EventForm = () => {
             <button type="submit"
                 onClick={evt => {
                     evt.preventDefault()
-                    const event = {
-                        gameId: parseInt(currentEvent.gameId), 
-                        description: currentEvent.description,
-                        date: currentEvent.date,
-                        time: currentEvent.time,
-                    }
-                    createEvent(event)
-                    .then(() => history.push("/events"))
-                }}
-                className="btn btn-primary">Create Event</button>
+                    if (eventId) {
+                        updateEvent(event)
+                            .then(()=> history.push("/events"))
+                    } else{
+                        createEvent(event)
+                            .then(() => history.push("/events"))
+                }}}
+                className="btn btn-primary">Save Event</button>
         </form>
     )
 }

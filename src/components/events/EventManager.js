@@ -7,6 +7,15 @@ export const getEvents = () => {
         .then(response => response.json())
 }
 
+export const getSingleEvent = (id) => {
+    return fetch(`http://localhost:8000/events/${id}`, {
+        headers:{
+            "Authorization": `Token ${localStorage.getItem("lu_token")}`
+        }
+    })
+        .then(response => response.json())
+}
+
 export const createEvent = (event) => {
     return fetch("http://localhost:8000/events", {
         method: "POST",
@@ -15,6 +24,17 @@ export const createEvent = (event) => {
             // so we don't need to pass in the organizer in our event object.
             "Authorization": `Token ${localStorage.getItem("lu_token")}`,
             // Content-Type lets the server know what kind of information we're sending in.
+            "Content-Type" : "application/json"
+        },
+        body: JSON.stringify(event)
+     })
+     .then(getEvents)
+}
+export const updateEvent = (event) => {
+    return fetch(`http://localhost:8000/events/${event.id}`, {
+        method: "PUT",
+        headers: {
+            "Authorization": `Token ${localStorage.getItem("lu_token")}`,
             "Content-Type" : "application/json"
         },
         body: JSON.stringify(event)
